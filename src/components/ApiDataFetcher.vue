@@ -1,70 +1,34 @@
 <template>
-    <div class="api-data-fetcher">
-      <h2>API Data</h2>
-      <button @click="fetchData">Fetch Data</button>
-  
-      <div v-if="loading">Loading...</div>
-      <div v-if="error" class="error">{{ error }}</div>
-      
-      <ul v-if="data.length">
-        <li v-for="(item, index) in data" :key="index">
-          {{ item }}
-        </li>
+  <div>
+    <h1>API Data Fetcher</h1>
+    <div v-if="loading">Loading...</div>
+    <div v-else-if="error">{{ error }}</div>
+    <div v-else>
+      <ul>
+        <li v-for="item in items" :key="item.id">{{ item.name }}</li>
       </ul>
     </div>
-  </template>
-  
-  <script>
-  import { ref } from 'vue';
-  
-  export default {
-    setup() {
-      const data = ref([]);
-      const loading = ref(false);
-      const error = ref(null);
-  
-      const fetchData = async () => {
-        loading.value = true;
-        error.value = null;
-        try {
-          const response = await fetch('http://localhost:8000/api/fms/files/'); // Replace with your API endpoint
-          if (!response.ok) {
-            throw new Error('Failed to fetch data');
-          }
-          data.value = await response.json();
-        } catch (err) {
-          error.value = err.message;
-        } finally {
-          loading.value = false;
-        }
-      };
-  
-      return {
-        data,
-        loading,
-        error,
-        fetchData,
-      };
-    },
-  };
-  </script>
-  
-  <style scoped>
-  .api-data-fetcher {
-    text-align: left;
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+
+const items = ref([]);
+const loading = ref(true);
+const error = ref(null);
+
+const fetchData = async () => {
+  try {
+    const response = await axios.get('http://localhost:8000/api/fms/files');
+    items.value = response.data;
+  } catch (err) {
+    error.value = 'Failed to load data';
+  } finally {
+    loading.value = false;
   }
-  
-  button {
-    margin-bottom: 10px;
-  }
-  
-  .error {
-    color: red;
-  }
-  
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  </style>
-  
+};
+
+onMounted(fetchData);
+</script>
